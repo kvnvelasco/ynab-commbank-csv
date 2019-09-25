@@ -7,7 +7,6 @@ pub struct CliOptions {
 }
 
 pub fn get_cli_opts() -> CliOptions {
-
     let app = clap::App::new("ynab-csv")
         .arg(
             clap::Arg::with_name("dictionary")

@@ -139,7 +139,9 @@ impl FileBackedDictionary {
         dictionary_file
             .set_len(0)
             .expect("Unable to write to dictionary file [0]");
-        dictionary_file.write_fmt(format_args!("{}", &dict_str)).expect("Unable to write to dictionary file [1]");
+        dictionary_file
+            .write_fmt(format_args!("{}", &dict_str))
+            .expect("Unable to write to dictionary file [1]");
         &self
     }
 }
