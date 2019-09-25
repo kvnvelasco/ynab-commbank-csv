@@ -1,11 +1,14 @@
-use crate::dictionary::{Dictionary, FileBackedDictionary};
+use std::io::stdin;
+
 use csv::{Reader, Writer};
-use regex::Regex;
 use serde::Serialize;
-use std::fs::{File, OpenOptions};
-use std::io::{stdin, Write};
+
+use crate::cli::get_cli_opts;
+use crate::dictionary::{FileBackedDictionary};
+
 mod cli;
 mod dictionary;
+
 #[derive(Serialize)]
 struct YnabRecord {
     date: String,
@@ -15,33 +18,18 @@ struct YnabRecord {
 }
 
 fn main() {
-    // open the csv
-    let mut csv = {
-        let mut dir = std::env::current_dir().expect("No current dir - wtf?");
-        dir.push("data.csv");
-        Reader::from_path(&dir).expect("No Data File")
-    };
-
-    let mut output_csv = {
-        let mut dir = std::env::current_dir().expect("No current dir - wtf?");
-        dir.push("out.csv");
-        Writer::from_path(&dir).expect("No Data File")
-    };
-
-    let mut dictionary = {
-        let mut dir = std::env::current_dir().expect("No current dir - wtf?");
-        dir.push("dictionary.yml");
-        FileBackedDictionary::new(dir)
-    };
+    let opts = get_cli_opts();
+    let mut csv = Reader::from_path(&opts.input_path).expect("No Data File");
+    let mut output_csv = Writer::from_path(&opts.output_path).expect("No Data File");
+    let mut dictionary = FileBackedDictionary::new(&opts.dictionary_path);
 
     for line in csv.records() {
-        let inner = line.expect("Eh?");
+        let inner = line.expect("An unexpected error occured");
         let date = inner.get(0).expect("No Date");
         let amount: f64 = (inner.get(1).expect("No amount"))
             .parse()
             .expect("Invalid amount set");
         let payee = inner.get(2).expect("No Payee");
-
         // go over each dictionary item and run regex on it, if we don't find a match, pause wait for input then refresh
         // the regex store
 
@@ -56,13 +44,15 @@ fn main() {
                     if line.regex.as_regex().is_match(&payee) {
                         // write to the outer scope and break
                         dbg!("Found match with", line.regex.as_regex());
-                        output_csv.serialize(YnabRecord {
-                            date: date.to_string(),
-                            amount,
-                            payee: line.name.clone(),
-                            memo: String::new(),
-                        });
-                        output_csv.flush();
+                        output_csv
+                            .serialize(YnabRecord {
+                                date: date.to_string(),
+                                amount,
+                                payee: line.name.clone(),
+                                memo: String::new(),
+                            })
+                            .expect("Unable to write to csv output");
+                        output_csv.flush().expect("Unable to write to csv output");
                         break 'main;
                     }
                 }
@@ -74,11 +64,13 @@ fn main() {
             loop {
                 println!("\
                     Your dictionary file has been updated with a new entry at the TOP of the file. \n\
-                    Check the created entry for errors \n\
-                    Press ENTER when you are done"
+                    Check the created entry for errors \n\n\
+                    Are you done checking for errors (y)?"
                 );
                 str.clear();
-                stdin().read_line(&mut str);
+                stdin()
+                    .read_line(&mut str)
+                    .expect("Unable to read from stidin");
                 dbg!(&str);
                 if str == "y\n" {
                     break;

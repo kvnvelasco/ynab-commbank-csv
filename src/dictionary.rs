@@ -100,11 +100,14 @@ impl FileBackedDictionary {
             .expect("No dictionary file")
     }
 
-    pub fn new(path: PathBuf) -> Self {
+    pub fn new(path: &Path) -> Self {
         let dictionary: Dictionary =
             serde_yaml::from_reader(FileBackedDictionary::dictionary_file(&path))
                 .unwrap_or(Dictionary::new());
-        FileBackedDictionary { path, dictionary }
+        FileBackedDictionary {
+            path: path.to_owned(),
+            dictionary,
+        }
     }
 
     pub fn as_dictionary(&self) -> &Dictionary {
@@ -133,8 +136,10 @@ impl FileBackedDictionary {
     pub fn save(&self) -> &Self {
         let dict_str = serde_yaml::to_string(&self.dictionary).expect("Unable to serialize");
         let mut dictionary_file = FileBackedDictionary::dictionary_file(&self.path);
-        dictionary_file.set_len(0);
-        dictionary_file.write_fmt(format_args!("{}", &dict_str));
+        dictionary_file
+            .set_len(0)
+            .expect("Unable to write to dictionary file [0]");
+        dictionary_file.write_fmt(format_args!("{}", &dict_str)).expect("Unable to write to dictionary file [1]");
         &self
     }
 }
