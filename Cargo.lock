@@ -406,7 +406,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ynab-csv-importer"
+name = "ynab-commbank-csv-importer"
 version = "0.1.0"
 dependencies = [
  "chrono 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
