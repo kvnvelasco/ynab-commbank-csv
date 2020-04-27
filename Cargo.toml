@@ -6,6 +6,10 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[[bin]]
+name = "ynab-cba"
+path = "src/main.rs"
+
 [dependencies]
 csv = "1.1.1"
 failure = "0.1.5"

@@ -53,13 +53,7 @@ fn main() {
     }
 
     if input_buffer != "" {
-        // parse the input buffer
         let lines: Vec<&str> = input_buffer.trim().split("\n").collect();
-        // segment lines into 4 line groups
-        //        24 Sep 2019
-        //        Open transaction details
-        //        PENDING - DENDY CINEMAS PTY LT NEWTOWN AUS
-        //            -$19.
         if lines.len() > 4 {
             for chunk in lines.chunks(4) {
                 let date = {
